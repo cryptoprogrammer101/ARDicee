@@ -22,16 +22,25 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         
 //        create a cube with a side length of 0.1m (10 cm)
 //        slightly round corners of the cube
-        let cube = SCNBox(width: 0.1, height: 0.1, length: 0.1, chamferRadius: 0.01)
+//        let cube = SCNBox(width: 0.1, height: 0.1, length: 0.1, chamferRadius: 0.01)
+        
+//        create a sphere with a radius of 0.2m, or 20cm
+        let sphere = SCNSphere(radius: 0.2)
         
 //        create the material to go on the cube
         let material = SCNMaterial()
         
 //        set the color of the cube to blue
-        material.diffuse.contents = UIColor.blue
+//        material.diffuse.contents = UIColor.blue
+        
+//        set the texture of the sphere to the moon
+        material.diffuse.contents = UIImage(named: "art.scnassets/moon.jpg")
         
 //        pass in the material to the cube
-        cube.materials = [material]
+//        cube.materials = [material]
+        
+//        pass in the material to the sphere
+        sphere.materials = [material]
         
 //        create a node
 //        a node is a point in 3D space, representing position and transform
@@ -44,7 +53,10 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         node.position = SCNVector3(x: 0, y: 0.1, z: -0.5)
         
 //        set the geometry of the node to the cube we created
-        node.geometry = cube
+//        node.geometry = cube
+        
+//        set the geometry of the node to the sphere we created
+        node.geometry = sphere
         
 //        set the scene to the view
 //        add the child node to the root node in the 3D scene
