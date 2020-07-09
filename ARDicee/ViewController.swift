@@ -20,14 +20,48 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         // Set the view's delegate
         sceneView.delegate = self
         
+//        create a cube with a side length of 0.1m (10 cm)
+//        slightly round corners of the cube
+        let cube = SCNBox(width: 0.1, height: 0.1, length: 0.1, chamferRadius: 0.01)
+        
+//        create the material to go on the cube
+        let material = SCNMaterial()
+        
+//        set the color of the cube to blue
+        material.diffuse.contents = UIColor.blue
+        
+//        pass in the material to the cube
+        cube.materials = [material]
+        
+//        create a node
+//        a node is a point in 3D space, representing position and transform
+        let node = SCNNode()
+        
+//        declare the position of the node
+//        SCNVector3 is a 3D vector that has an x-position, y-position, and z-position
+//        set the x-position to be 0, set the y-position to be 0.1 (raising the cube up 10 cm), and push the cube away from the user by setting the z-position to a negative number (-0.5 -> 50 cm in front)
+//        +z -> towards the user, -z -> away from the user
+        node.position = SCNVector3(x: 0, y: 0.1, z: -0.5)
+        
+//        set the geometry of the node to the cube we created
+        node.geometry = cube
+        
+//        set the scene to the view
+//        add the child node to the root node in the 3D scene
+        sceneView.scene.rootNode.addChildNode(node)
+        
+//        allow the scene to automatically adjust lighting for the cube
+//        makes it more realistic
+        sceneView.autoenablesDefaultLighting = true
+        
         // Show statistics such as fps and timing information
-        sceneView.showsStatistics = true
+//        sceneView.showsStatistics = true
         
-        // Create a new scene
-        let scene = SCNScene(named: "art.scnassets/ship.scn")!
-        
-        // Set the scene to the view
-        sceneView.scene = scene
+//        // Create a new scene
+//        let scene = SCNScene(named: "art.scnassets/ship.scn")!
+//
+//        // Set the scene to the view
+//        sceneView.scene = scene
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -45,31 +79,5 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         
         // Pause the view's session
         sceneView.session.pause()
-    }
-
-    // MARK: - ARSCNViewDelegate
-    
-/*
-    // Override to create and configure nodes for anchors added to the view's session.
-    func renderer(_ renderer: SCNSceneRenderer, nodeFor anchor: ARAnchor) -> SCNNode? {
-        let node = SCNNode()
-     
-        return node
-    }
-*/
-    
-    func session(_ session: ARSession, didFailWithError error: Error) {
-        // Present an error message to the user
-        
-    }
-    
-    func sessionWasInterrupted(_ session: ARSession) {
-        // Inform the user that the session has been interrupted, for example, by presenting an overlay
-        
-    }
-    
-    func sessionInterruptionEnded(_ session: ARSession) {
-        // Reset tracking and/or remove existing anchors if consistent tracking is required
-        
     }
 }
