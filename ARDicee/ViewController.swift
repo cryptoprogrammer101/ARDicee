@@ -17,6 +17,9 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+//        display a cloud of points as scene analysis is being done
+        sceneView.debugOptions = [ARSCNDebugOptions.showFeaturePoints]
+        
         // Set the view's delegate
         sceneView.delegate = self
         
@@ -99,6 +102,9 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         
         // Create a session configuration
         let configuration = ARWorldTrackingConfiguration()
+        
+//        set the plane of the configuration to horizontal
+        configuration.planeDetection = .horizontal
 
         // Run the view's session
         sceneView.session.run(configuration)
@@ -110,4 +116,58 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         // Pause the view's session
         sceneView.session.pause()
     }
+    
+//    when a 3d object has been detected, and its dimensions are calculated (and represented in the form of an ARAnchor)
+    func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
+        
+//        if the object detected is a plane
+        if anchor is ARPlaneAnchor {
+            
+//            downcast the anchor into type ARPlaneAnchor
+            let planeAnchor = anchor as! ARPlaneAnchor
+            
+//            create a plane in SceneKit
+//            the extent property of the plane anchor is 2D (the y-value is always 0)
+//            the only properties available in the extent property and x and z
+            let plane = SCNPlane(width: CGFloat(planeAnchor.extent.x), height: CGFloat(planeAnchor.extent.z))
+            
+//            create a node for the plane
+            let planeNode = SCNNode()
+            
+//            set the position of the node
+//            center the node on the x-axis and z-axis
+//            set the y-value to 0 as the plane is 2D
+            planeNode.position = SCNVector3(x: planeAnchor.center.x, y: 0, z: planeAnchor.center.z)
+            
+//            as the plane is by default vertical, and we need to make it horizontal, we must rotate the plane 90 degrees
+//            the "angle" parameter takes in radians, so we must convert 90 degrees to radians by dividing π by 2
+//            as the rotation function rotates counter-clockwise, in order to rotate the plane clockwise, we must put a negative in front of the angle
+            
+//            we only want to rotate around the x-axis, and we don't care about the y-axis and the z-axis
+            planeNode.transform = SCNMatrix4MakeRotation(-Float.pi/2, 1, 0, 0)
+            
+//            create the material to go on to the grid
+            let gridMaterial = SCNMaterial()
+            
+//            change the texture of the gridMaterial to the grid.png in the project
+            gridMaterial.diffuse.contents = UIImage(named: "art.scnassets/grid.png")
+            
+//            assign the material to the plane geometry created earlier
+            plane.materials = [gridMaterial]
+            
+//            set the geometry of the planeNode to the plane we created
+            planeNode.geometry = plane
+            
+//            add the node to the child node
+            node.addChildNode(planeNode)
+        
+//        if the object detected is not a plane
+        } else {
+            
+//            end the function's progression
+            return
+        }
+        
+    }
+    
 }
