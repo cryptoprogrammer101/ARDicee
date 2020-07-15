@@ -172,6 +172,34 @@ class ViewController: UIViewController, ARSCNViewDelegate {
 //                    add the child node to the root node in the 3D scene
                     sceneView.scene.rootNode.addChildNode(diceNode)
                     
+//                    pick a random number from 1 to 4 for the x-direction
+                    
+//                    arc4random_uniform picks a random number from 0 to, but not including, the upper bound (which in this case is 4)
+//                    by adding one, the random number picked goes from [0, 1, 2, 3] to [1, 2, 3, 4]
+                    
+//                    multiplying it by pi over two converts the number of faces turned to radians
+                    let randomX = Float(arc4random_uniform(4) + 1) * (Float.pi/2)
+                    
+//                    pick a random number from 1 to 4 for the z-direction
+                    let randomY = Float(arc4random_uniform(4) + 1) * (Float.pi/2)
+                    
+//                    pick a random number from 1 to 4 for the z-direction
+                    let randomZ = Float(arc4random_uniform(4) + 1) * (Float.pi/2)
+                    
+//                    create the animation
+                    diceNode.runAction(
+                    
+//                        rotate the die
+//                        multiply the rotation values by 5 to make the die spin for longer
+                        SCNAction.rotateBy(
+                            x: CGFloat(randomX * 5),
+                            y: CGFloat(randomY * 5),
+                            z: CGFloat(randomZ * 5),
+                            duration: 0.5
+                        )
+                        
+                    )
+                    
                 }
                 
             }
