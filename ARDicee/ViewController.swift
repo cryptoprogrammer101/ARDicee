@@ -14,6 +14,8 @@ class ViewController: UIViewController, ARSCNViewDelegate {
 
     @IBOutlet var sceneView: ARSCNView!
     
+    var diceArray = [SCNNode]()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -168,37 +170,15 @@ class ViewController: UIViewController, ARSCNViewDelegate {
                         y: hitResult.worldTransform.columns.3.y + diceNode.boundingSphere.radius,
                         z: hitResult.worldTransform.columns.3.z
                     )
+                    
+//                    add the die to the list
+                    diceArray.append(diceNode)
                             
 //                    add the child node to the root node in the 3D scene
                     sceneView.scene.rootNode.addChildNode(diceNode)
                     
-//                    pick a random number from 1 to 4 for the x-direction
-                    
-//                    arc4random_uniform picks a random number from 0 to, but not including, the upper bound (which in this case is 4)
-//                    by adding one, the random number picked goes from [0, 1, 2, 3] to [1, 2, 3, 4]
-                    
-//                    multiplying it by pi over two converts the number of faces turned to radians
-                    let randomX = Float(arc4random_uniform(4) + 1) * (Float.pi/2)
-                    
-//                    pick a random number from 1 to 4 for the z-direction
-                    let randomY = Float(arc4random_uniform(4) + 1) * (Float.pi/2)
-                    
-//                    pick a random number from 1 to 4 for the z-direction
-                    let randomZ = Float(arc4random_uniform(4) + 1) * (Float.pi/2)
-                    
-//                    create the animation
-                    diceNode.runAction(
-                    
-//                        rotate the die
-//                        multiply the rotation values by 5 to make the die spin for longer
-                        SCNAction.rotateBy(
-                            x: CGFloat(randomX * 5),
-                            y: CGFloat(randomY * 5),
-                            z: CGFloat(randomZ * 5),
-                            duration: 0.5
-                        )
-                        
-                    )
+//                    roll the die
+                    roll(diceNode)
                     
                 }
                 
@@ -206,6 +186,73 @@ class ViewController: UIViewController, ARSCNViewDelegate {
             
         }
         
+    }
+        
+//    create a function to roll all of the dice at once
+    func rollAll() {
+        
+//        if the diceArray is not empty
+        if !diceArray.isEmpty {
+            
+//            for every die in the diceArray
+            for die in diceArray {
+                
+//                roll the die
+                roll(die)
+                
+            }
+            
+        }
+        
+    }
+    
+//    create a function to roll a die
+    func roll(_ die: SCNNode) {
+        
+                            
+//        pick a random number from 1 to 4 for the x-direction
+                    
+//        arc4random_uniform picks a random number from 0 to, but not including, the upper bound (which in this case is 4)
+//        by adding one, the random number picked goes from [0, 1, 2, 3] to [1, 2, 3, 4]
+                    
+//        multiplying it by pi over two converts the number of faces turned to radians
+        let randomX = Float(arc4random_uniform(4) + 1) * (Float.pi/2)
+                    
+//        pick a random number from 1 to 4 for the z-direction
+        let randomY = Float(arc4random_uniform(4) + 1) * (Float.pi/2)
+                    
+//        pick a random number from 1 to 4 for the z-direction
+        let randomZ = Float(arc4random_uniform(4) + 1) * (Float.pi/2)
+                    
+//        create the animation
+        die.runAction(
+                    
+//            rotate the die
+//            multiply the rotation values by 5 to make the die spin for longer
+            SCNAction.rotateBy(
+                x: CGFloat(randomX * 5),
+                    y: CGFloat(randomY * 5),
+                    z: CGFloat(randomZ * 5),
+                    duration: 0.5
+                )
+                        
+            )
+        
+    }
+    
+//    when the roll button is clicked
+    @IBAction func rollAgain(_ sender: UIBarButtonItem) {
+        
+//        roll all of the dice
+        rollAll()
+        
+    }
+    
+//    when the device is shaken
+    override func motionEnded(_ motion: UIEvent.EventSubtype, with event: UIEvent?) {
+        
+//        roll all of the dice
+        rollAll()
     }
     
 //    when a 3D object has been detected, and its dimensions are calculated (and represented in the form of an ARAnchor)
