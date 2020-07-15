@@ -20,7 +20,7 @@ class ViewController: UIViewController, ARSCNViewDelegate {
 //        display a cloud of points as scene analysis is being done
         sceneView.debugOptions = [ARSCNDebugOptions.showFeaturePoints]
         
-        // Set the view's delegate
+//        Set the view's delegate
         sceneView.delegate = self
         
 //        create a cube with a side length of 0.1m (10 cm)
@@ -69,10 +69,10 @@ class ViewController: UIViewController, ARSCNViewDelegate {
 //        makes it more realistic
         sceneView.autoenablesDefaultLighting = true
         
-        // Show statistics such as fps and timing information
-//        sceneView.showsStatistics = true
+//        Show statistics such as fps and timing information
+        sceneView.showsStatistics = true
         
-        // Create a new scene
+//        Create a new scene
         let diceScene = SCNScene(named: "art.scnassets/diceCollada.scn")!
 
 //        create a node to make a 3D position to place the nice
@@ -93,31 +93,51 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         }
         
         
-        // Set the scene to the view
+//        Set the scene to the view
 //        sceneView.scene = scene
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
-        // Create a session configuration
+//        Create a session configuration
         let configuration = ARWorldTrackingConfiguration()
         
 //        set the plane of the configuration to horizontal
         configuration.planeDetection = .horizontal
 
-        // Run the view's session
+//        Run the view's session
         sceneView.session.run(configuration)
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         
-        // Pause the view's session
+//        Pause the view's session
         sceneView.session.pause()
     }
     
-//    when a 3d object has been detected, and its dimensions are calculated (and represented in the form of an ARAnchor)
+//    when a touch is detected
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+
+//        since multi-touch is not enabled, we only want to retrieve the first touch
+        if let touch = touches.first {
+            
+//            find the location of the touch in the coordinate system of the sceneView
+            let touchLocation = touch.location(in: sceneView)
+            
+//            hitTest(_:types:) searches for real-world objects or AR anchors (in the image taken by the camera) corresponding to a point in the SceneKit view
+//            the point we're looking for is the touchLocation point
+            
+//            "types" parameter refers to the type of hit-test result to search for
+//            we are looking for a plane anchor already in the scene, taking into account the size of the plane (by adding "UsingExtent")
+            let results = sceneView.hitTest(touchLocation, types: .existingPlaneUsingExtent)
+            
+        }
+        
+    }
+    
+//    when a 3D object has been detected, and its dimensions are calculated (and represented in the form of an ARAnchor)
     func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
         
 //        if the object detected is a plane
