@@ -20,34 +20,36 @@ class ViewController: UIViewController, ARSCNViewDelegate {
 //        display a cloud of points as scene analysis is being done
         sceneView.debugOptions = [ARSCNDebugOptions.showFeaturePoints]
         
-//        Set the view's delegate
+//        set the view's delegate
         sceneView.delegate = self
         
+/*
+
 //        create a cube with a side length of 0.1m (10 cm)
 //        slightly round corners of the cube
-//        let cube = SCNBox(width: 0.1, height: 0.1, length: 0.1, chamferRadius: 0.01)
+        let cube = SCNBox(width: 0.1, height: 0.1, length: 0.1, chamferRadius: 0.01)
         
 //        create a sphere with a radius of 0.2m, or 20cm
-//        let sphere = SCNSphere(radius: 0.2)
+        let sphere = SCNSphere(radius: 0.2)
         
 //        create the material to go on the cube
-//        let material = SCNMaterial()
+        let material = SCNMaterial()
         
 //        set the color of the cube to blue
-//        material.diffuse.contents = UIColor.blue
+        material.diffuse.contents = UIColor.blue
         
 //        set the texture of the sphere to the moon
-//        material.diffuse.contents = UIImage(named: "art.scnassets/moon.jpg")
+        material.diffuse.contents = UIImage(named: "art.scnassets/moon.jpg")
         
 //        pass in the material to the cube
-//        cube.materials = [material]
+        cube.materials = [material]
         
 //        pass in the material to the sphere
-//        sphere.materials = [material]
+        sphere.materials = [material]
         
 //        create a node
 //        a node is a point in 3D space, representing position and transform
-//        let node = SCNNode()
+        let node = SCNNode()
         
 //        declare the position of the node
 //        SCNVector3 is a 3D vector that has an x-position, y-position, and z-position
@@ -56,23 +58,16 @@ class ViewController: UIViewController, ARSCNViewDelegate {
 //        node.position = SCNVector3(x: 0, y: 0.1, z: -0.5)
         
 //        set the geometry of the node to the cube we created
-//        node.geometry = cube
+        node.geometry = cube
         
 //        set the geometry of the node to the sphere we created
-//        node.geometry = sphere
+        node.geometry = sphere
         
 //        set the scene to the view
 //        add the child node to the root node in the 3D scene
-//        sceneView.scene.rootNode.addChildNode(node)
+        sceneView.scene.rootNode.addChildNode(node)
         
-//        allow the scene to automatically adjust lighting for the cube
-//        makes it more realistic
-        sceneView.autoenablesDefaultLighting = true
-        
-//        Show statistics such as fps and timing information
-        sceneView.showsStatistics = true
-        
-//        Create a new scene
+//        create a new scene
         let diceScene = SCNScene(named: "art.scnassets/diceCollada.scn")!
 
 //        create a node to make a 3D position to place the nice
@@ -92,9 +87,18 @@ class ViewController: UIViewController, ARSCNViewDelegate {
             
         }
         
+//        set the scene to the view
+        sceneView.scene = scene
+ 
+ */
         
-//        Set the scene to the view
-//        sceneView.scene = scene
+//        allow the scene to automatically adjust lighting for the cube
+//        makes it more realistic
+        sceneView.autoenablesDefaultLighting = true
+        
+//        Show statistics such as fps and timing information
+        sceneView.showsStatistics = true
+ 
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -132,6 +136,45 @@ class ViewController: UIViewController, ARSCNViewDelegate {
 //            "types" parameter refers to the type of hit-test result to search for
 //            we are looking for a plane anchor already in the scene, taking into account the size of the plane (by adding "UsingExtent")
             let results = sceneView.hitTest(touchLocation, types: .existingPlaneUsingExtent)
+     
+//            if there is one hit result
+            if let hitResult = results.first {
+                
+//                create a new scene
+                let diceScene = SCNScene(named: "art.scnassets/diceCollada.scn")!
+
+//                create a node to make a 3D position to place the nice
+//                find the child node of the root node of the diceScene that is created with the diceCollada.scn
+                
+//                setting recursively to true makes the program search through all of the trees and subtrees of the nodes to find a child node with that identifier, as opposed to only the child nodes that are in the topmost level
+//                in this case it is not really necessary, as the "Dice" node exists in the topmost level, but it is stil a good habit
+                
+//                diceNode is an optional, as it may not find a node with that name
+                if let diceNode = diceScene.rootNode.childNode(withName: "Dice", recursively: true) {
+
+//                    give the diceNode its real world position
+                    
+//                    the worldTransform object in the hit result corresponds to the real-world position of the touch detected
+//                    worldTransform is a 4 x 4 matrix of Floats
+                    
+//                    since column starts at 0, the fourth column is column 3
+//                    we want to retrieve the x-component of that column
+                    
+//                    we can use a similar process to retrieve the y-component and the z-component
+                    
+//                    however, with the y-component, we need to add the radius of the dice to the y-component, as by default, half the dice will be above the plane, and half will be below
+                    diceNode.position = SCNVector3(
+                        x: hitResult.worldTransform.columns.3.x,
+                        y: hitResult.worldTransform.columns.3.y + diceNode.boundingSphere.radius,
+                        z: hitResult.worldTransform.columns.3.z
+                    )
+                            
+//                    add the child node to the root node in the 3D scene
+                    sceneView.scene.rootNode.addChildNode(diceNode)
+                    
+                }
+                
+            }
             
         }
         
