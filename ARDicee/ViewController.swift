@@ -20,7 +20,7 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         super.viewDidLoad()
         
 //        display a cloud of points as scene analysis is being done
-        sceneView.debugOptions = [ARSCNDebugOptions.showFeaturePoints]
+//        sceneView.debugOptions = [ARSCNDebugOptions.showFeaturePoints]
         
 //        set the view's delegate
         sceneView.delegate = self
@@ -57,7 +57,7 @@ class ViewController: UIViewController, ARSCNViewDelegate {
 //        SCNVector3 is a 3D vector that has an x-position, y-position, and z-position
 //        set the x-position to be 0, set the y-position to be 0.1 (raising the cube up 10 cm), and push the cube away from the user by setting the z-position to a negative number (-0.5 -> 50 cm in front)
 //        +z -> towards the user, -z -> away from the user
-//        node.position = SCNVector3(x: 0, y: 0.1, z: -0.5)
+        node.position = SCNVector3(x: 0, y: 0.1, z: -0.5)
         
 //        set the geometry of the node to the cube we created
         node.geometry = cube
@@ -90,16 +90,16 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         }
         
 //        set the scene to the view
-        sceneView.scene = scene
+        sceneView.scene = diceScene
  
  */
         
 //        allow the scene to automatically adjust lighting for the cube
 //        makes it more realistic
-        sceneView.autoenablesDefaultLighting = true
+        sceneView.autoenablesDefaultLighting = K.autoenablesDefaultLighting
         
-//        Show statistics such as fps and timing information
-        sceneView.showsStatistics = true
+//        show statistics such as fps and timing information
+        sceneView.showsStatistics = K.showsStatistics
  
     }
     
@@ -123,6 +123,22 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         sceneView.session.pause()
     }
     
+//    create a function to generate a random number
+    func randomNumber() -> CGFloat {
+
+//        pick a random number from 1 to 4
+                    
+//        arc4random_uniform picks a random number from 0 to, but not including, the upper bound (which in this case is 4 (K.randomMax))
+//        by adding one (K.addToRandom), the random number picked goes from [0, 1, 2, 3] to [1, 2, 3, 4]
+                    
+//        multiplying it by pi over two converts the number of faces turned to radians
+        
+        return CGFloat(Float(arc4random_uniform(K.randomMax) + K.addToRandom) * K.radiansConvert * K.rotationConstant)
+        
+    }
+    
+    //MARK: - Dice Rendering Methods
+    
 //    when a touch is detected
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
 
@@ -142,52 +158,87 @@ class ViewController: UIViewController, ARSCNViewDelegate {
 //            if there is one hit result
             if let hitResult = results.first {
                 
-//                create a new scene
-                let diceScene = SCNScene(named: "art.scnassets/diceCollada.scn")!
-
-//                create a node to make a 3D position to place the nice
-//                find the child node of the root node of the diceScene that is created with the diceCollada.scn
-                
-//                setting recursively to true makes the program search through all of the trees and subtrees of the nodes to find a child node with that identifier, as opposed to only the child nodes that are in the topmost level
-//                in this case it is not really necessary, as the "Dice" node exists in the topmost level, but it is stil a good habit
-                
-//                diceNode is an optional, as it may not find a node with that name
-                if let diceNode = diceScene.rootNode.childNode(withName: "Dice", recursively: true) {
-
-//                    give the diceNode its real world position
+                addDice(atLocation: hitResult)
                     
-//                    the worldTransform object in the hit result corresponds to the real-world position of the touch detected
-//                    worldTransform is a 4 x 4 matrix of Floats
-                    
-//                    since column starts at 0, the fourth column is column 3
-//                    we want to retrieve the x-component of that column
-                    
-//                    we can use a similar process to retrieve the y-component and the z-component
-                    
-//                    however, with the y-component, we need to add the radius of the dice to the y-component, as by default, half the dice will be above the plane, and half will be below
-                    diceNode.position = SCNVector3(
-                        x: hitResult.worldTransform.columns.3.x,
-                        y: hitResult.worldTransform.columns.3.y + diceNode.boundingSphere.radius,
-                        z: hitResult.worldTransform.columns.3.z
-                    )
-                    
-//                    add the die to the list
-                    diceArray.append(diceNode)
-                            
-//                    add the child node to the root node in the 3D scene
-                    sceneView.scene.rootNode.addChildNode(diceNode)
-                    
-//                    roll the die
-                    roll(diceNode)
-                    
-                }
-                
             }
+                
+        }
+            
+    }
+        
+//    create a function to add a dice at a certain location
+    func addDice(atLocation location: ARHitTestResult) {
+        
+         
+//        create a new scene
+        let diceScene = SCNScene(named: K.diceScene)!
+
+//        create a node to make a 3D position to place the nice
+//        find the child node of the root node of the diceScene that is created with the diceCollada.scn
+        
+//        setting recursively to true makes the program search through all of the trees and subtrees of the nodes to find a child node with that identifier, as opposed to only the child nodes that are in the topmost level
+//        in this case it is not really necessary, as the "Dice" node exists in the topmost level, but it is stil a good habit
+        
+//        diceNode is an optional, as it may not find a node with that name
+        if let diceNode = diceScene.rootNode.childNode(withName: K.diceNode, recursively: K.recursiveSearching) {
+
+//            give the diceNode its real world position
+            
+//            the worldTransform object in the hit result corresponds to the real-world position of the touch detected
+//            worldTransform is a 4 x 4 matrix of Floats
+            
+//            since column starts at 0, the fourth column is column 3
+//            we want to retrieve the x-component of that column
+            
+//            we can use a similar process to retrieve the y-component and the z-component
+            
+//            however, with the y-component, we need to add the radius of the dice to the y-component, as by default, half the dice will be above the plane, and half will be below
+            diceNode.position = SCNVector3(
+                x: location.worldTransform.columns.3.x,
+                y: location.worldTransform.columns.3.y + diceNode.boundingSphere.radius,
+                z: location.worldTransform.columns.3.z
+            )
+            
+//            add the die to the list
+            diceArray.append(diceNode)
+                    
+//            add the child node to the root node in the 3D scene
+            sceneView.scene.rootNode.addChildNode(diceNode)
+            
+//            roll the die
+            roll(diceNode)
             
         }
         
     }
+    
+    func roll(_ die: SCNNode) {
+
+//        pick a random number from 1 to 4 for the x-direction
+        let randomX = randomNumber()
+                    
+//        pick a random number from 1 to 4 for the y-direction
+        let randomY = randomNumber()
+                    
+//        pick a random number from 1 to 4 for the z-direction
+        let randomZ = randomNumber()
+                    
+//        create the animation
+        die.runAction(
+                    
+//            rotate the die
+//            multiply the rotation values by 5 to make the die spin for longer
+            SCNAction.rotateBy(
+                x: randomX,
+                y: randomY,
+                z: randomZ,
+                duration: K.duration
+                )
+                        
+            )
         
+    }
+    
 //    create a function to roll all of the dice at once
     func rollAll() {
         
@@ -206,40 +257,6 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         
     }
     
-//    create a function to roll a die
-    func roll(_ die: SCNNode) {
-        
-                            
-//        pick a random number from 1 to 4 for the x-direction
-                    
-//        arc4random_uniform picks a random number from 0 to, but not including, the upper bound (which in this case is 4)
-//        by adding one, the random number picked goes from [0, 1, 2, 3] to [1, 2, 3, 4]
-                    
-//        multiplying it by pi over two converts the number of faces turned to radians
-        let randomX = Float(arc4random_uniform(4) + 1) * (Float.pi/2)
-                    
-//        pick a random number from 1 to 4 for the z-direction
-        let randomY = Float(arc4random_uniform(4) + 1) * (Float.pi/2)
-                    
-//        pick a random number from 1 to 4 for the z-direction
-        let randomZ = Float(arc4random_uniform(4) + 1) * (Float.pi/2)
-                    
-//        create the animation
-        die.runAction(
-                    
-//            rotate the die
-//            multiply the rotation values by 5 to make the die spin for longer
-            SCNAction.rotateBy(
-                x: CGFloat(randomX * 5),
-                    y: CGFloat(randomY * 5),
-                    z: CGFloat(randomZ * 5),
-                    duration: 0.5
-                )
-                        
-            )
-        
-    }
-    
 //    when the roll button is clicked
     @IBAction func rollAgain(_ sender: UIBarButtonItem) {
         
@@ -255,57 +272,73 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         rollAll()
     }
     
-//    when a 3D object has been detected, and its dimensions are calculated (and represented in the form of an ARAnchor)
-    func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
+//    when the remove button is clicked
+    @IBAction func removeAllDice(_ sender: UIBarButtonItem) {
         
-//        if the object detected is a plane
-        if anchor is ARPlaneAnchor {
+//        if the diceArray is not empty
+        if !diceArray.isEmpty {
             
-//            downcast the anchor into type ARPlaneAnchor
-            let planeAnchor = anchor as! ARPlaneAnchor
+//            for every die
+            for die in diceArray {
+                
+//                delete the die
+                die.removeFromParentNode()
+            }
             
-//            create a plane in SceneKit
-//            the extent property of the plane anchor is 2D (the y-value is always 0)
-//            the only properties available in the extent property and x and z
-            let plane = SCNPlane(width: CGFloat(planeAnchor.extent.x), height: CGFloat(planeAnchor.extent.z))
-            
-//            create a node for the plane
-            let planeNode = SCNNode()
-            
-//            set the position of the node
-//            center the node on the x-axis and z-axis
-//            set the y-value to 0 as the plane is 2D
-            planeNode.position = SCNVector3(x: planeAnchor.center.x, y: 0, z: planeAnchor.center.z)
-            
-//            as the plane is by default vertical, and we need to make it horizontal, we must rotate the plane 90 degrees
-//            the "angle" parameter takes in radians, so we must convert 90 degrees to radians by dividing π by 2
-//            as the rotation function rotates counter-clockwise, in order to rotate the plane clockwise, we must put a negative in front of the angle
-            
-//            we only want to rotate around the x-axis, and we don't care about the y-axis and the z-axis
-            planeNode.transform = SCNMatrix4MakeRotation(-Float.pi/2, 1, 0, 0)
-            
-//            create the material to go on to the grid
-            let gridMaterial = SCNMaterial()
-            
-//            change the texture of the gridMaterial to the grid.png in the project
-            gridMaterial.diffuse.contents = UIImage(named: "art.scnassets/grid.png")
-            
-//            assign the material to the plane geometry created earlier
-            plane.materials = [gridMaterial]
-            
-//            set the geometry of the planeNode to the plane we created
-            planeNode.geometry = plane
-            
-//            add the node to the child node
-            node.addChildNode(planeNode)
-        
-//        if the object detected is not a plane
-        } else {
-            
-//            end the function's progression
-            return
         }
         
     }
+    
+    //MARK: - ARSCNView Delegate Methods
+
+    //    when a 3D object has been detected, and its dimensions are calculated (and represented in the form of an ARAnchor)
+    func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
+        
+//        convert the anchor to type ARPlaneAnchor if possible
+//        if it is not possible, end the function
+        guard let planeAnchor = anchor as? ARPlaneAnchor else {return}
+        
+        let planeNode = createPlane(with: planeAnchor)
+        
+//        add the node to the child node
+        node.addChildNode(planeNode)
+        
+    }
+    
+    //MARK: - Plane Rendering Methods
+    func createPlane(with planeAnchor: ARPlaneAnchor) -> SCNNode {
+                            
+//        create a plane in SceneKit
+//        the extent property of the plane anchor is 2D (the y-value is always 0)
+//        the only properties available in the extent property and x and z
+        let plane = SCNPlane(width: CGFloat(planeAnchor.extent.x), height: CGFloat(planeAnchor.extent.z))
+        
+//        create a node for the plane
+        let planeNode = SCNNode()
+        
+//        set the position of the node
+//        center the node on the x-axis and z-axis
+//        set the y-value to 0 as the plane is 2D
+        planeNode.position = SCNVector3(x: planeAnchor.center.x, y: K.yComponent, z: planeAnchor.center.z)
+        
+        planeNode.transform = SCNMatrix4MakeRotation(K.angleRotation, K.xRotation, K.yRotation, K.zRotation)
+        
+//        create the material to go on to the grid
+        let gridMaterial = SCNMaterial()
+        
+//        change the texture of the gridMaterial to the grid.png in the project
+        gridMaterial.diffuse.contents = UIImage(named: "art.scnassets/grid.png")
+        
+//        assign the material to the plane geometry created earlier
+        plane.materials = [gridMaterial]
+        
+//        set the geometry of the planeNode to the plane we created
+        planeNode.geometry = plane
+        
+//        return the node created
+        return planeNode
+        
+    }
+    
     
 }
